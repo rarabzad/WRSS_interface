@@ -340,17 +340,6 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 #hq-tip{position:fixed;z-index:99999;background:var(--panel2);border:1px solid var(--accent);border-radius:6px;padding:9px 12px;font-size:11px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;line-height:1.6;white-space:normal;width:242px;max-width:calc(100vw - 20px);box-shadow:0 8px 28px rgba(0,0,0,.6);pointer-events:none;opacity:0;transition:opacity .15s;word-break:break-word;}
 #hq-tip.visible{opacity:1}
 
-/* ── GEOJSON LAYERS ── */
-.gj-layer-item{display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text2);border-bottom:1px solid var(--border)}
-.gj-layer-item:last-child{border-bottom:none}
-.gj-layer-color{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.gj-layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gj-layer-del{color:var(--text2);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;transition:color .15s;background:transparent;border:none}
-.gj-layer-del:hover{color:var(--red)}
-#gj-panel{position:absolute;bottom:30px;left:74px;background:var(--panel);border:1px solid var(--border);border-radius:6px;min-width:180px;max-width:240px;z-index:600;box-shadow:0 4px 16px rgba(0,0,0,.4);display:none}
-#gj-panel-header{padding:6px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-#gj-panel-list{max-height:160px;overflow-y:auto}
-
 /* ── LEAFLET ── */
 .leaflet-container{background:#1a1d26}
 .leaflet-control-zoom a{background:var(--panel)!important;color:var(--text)!important;border-color:var(--border)!important}
@@ -399,15 +388,6 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
     Import JSON
     <input type="file" accept=".json" style="display:none" onchange="importJSON(event)"/>
   </label>
-  <label class="top-btn" style="cursor:pointer;color:#a371f7;border-color:#a371f7" title="Import GeoJSON spatial layer (subbasins, river network, etc.)">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="8,1 15,5 15,11 8,15 1,11 1,5"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg>
-    GeoJSON
-    <input type="file" accept=".geojson,.json" style="display:none" onchange="importGeoJSON(event)"/>
-  </label>
-  <button class="top-btn" style="color:var(--orange);border-color:var(--orange)" title="Export model as JSON (for sharing / re-import)" onclick="exportModelJSON()">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 10V2M5 5l3-3 3 3"/><rect x="2" y="11" width="12" height="3" rx="1"/></svg>
-    Export JSON
-  </button>
   <div class="top-sep"></div>
   <button class="top-btn run-btn" onclick="openRunModal()">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="4,2 14,8 4,14" fill="currentColor" stroke="none"/></svg>Run Model
@@ -453,7 +433,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
     <span class="tlabel">Aquifer</span>
   </button>
   <button class="tool-btn" id="tool-demand" onclick="setMode('demand')" title="Place Demand Site node (M)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2.5"/><line x1="12" y1="8" x2="12" y2="14"/><circle cx="12" cy="17" r="1.2" fill="#ef5350"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="2"><polygon points="12,3 22,21 2,21"/><line x1="12" y1="10" x2="12" y2="15"/><circle cx="12" cy="18" r="1" fill="#ef5350"/></svg>
     <span class="tlabel">Demand</span>
   </button>
   <div class="tsep"></div>
@@ -497,13 +477,6 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 <!-- ══ MAP ══ -->
 <div id="map-container">
   <div id="map"></div>
-  <div id="gj-panel">
-    <div id="gj-panel-header">
-      <span>GeoJSON Layers</span>
-      <button class="gj-layer-del" onclick="clearAllGeoJSON()" title="Remove all">✕ all</button>
-    </div>
-    <div id="gj-panel-list"></div>
-  </div>
   <div id="map-hint">Click on map to place object</div>
   <div id="connect-overlay">CONNECT — click source node, then target node</div>
 </div>
@@ -611,7 +584,6 @@ cat(toJSON(result, auto_unbox=TRUE, null='null', na='null', digits=6))</div>
     <div class="run-footer">
       <button class="run-dl-btn" onclick="downloadRScript()">⬇ Download .R Script</button>
       <button class="run-posit-btn" onclick="openPositCloud()">Open Posit Cloud ↗</button>
-      <button class="run-posit-btn" id="run-shiny-btn" onclick="runModel()" style="background:rgba(57,211,83,.18);border-color:var(--green)" title="Only works when served via Shiny (Posit Cloud deployment)">▶ Run in R</button>
     </div>
   </div>
 </div>
@@ -718,32 +690,33 @@ cat(toJSON(result, auto_unbox=TRUE, null='null', na='null', digits=6))</div>
 
 <script>
 // ══════════════════════════════════════════════════
-// SHINY BRIDGE (htmlTemplate + standalone fallback)
+// SHINY BRIDGE  (iframe → parent Shiny page)
+// builder.html runs as a static file inside an iframe.
+// The parent Shiny page owns the WebSocket session.
+// We communicate via postMessage in both directions.
 // ══════════════════════════════════════════════════
 (function() {
-  // Send data to Shiny server
+
+  // ── Send TO parent Shiny page ───────────────────
   window.toShiny = function(data) {
-    if (window.Shiny && window.Shiny.setInputValue) {
-      Shiny.setInputValue('iframe_msg', data, {priority: 'event'});
-    } else {
-      window.parent.postMessage(data, '*');
-    }
+    window.parent.postMessage({ source: 'builder', payload: data }, '*');
   };
 
-  // Handle messages FROM Shiny
-  function handleMsg(msg) {
+  // ── Receive FROM parent Shiny page ─────────────
+  window.addEventListener('message', function(e) {
+    var msg = e.data;
     if (!msg || !msg.type) return;
     if (msg.type === 'pong') {
-      const dot = document.getElementById('shiny-dot');
-      const lbl = document.getElementById('status-shiny');
+      var dot = document.getElementById('shiny-dot');
+      var lbl = document.getElementById('status-shiny');
       if (dot) dot.classList.remove('offline');
-      if (lbl) lbl.textContent = 'R: ' + (msg.wrss ? 'WRSS ready' : 'WRSS not installed — run install.packages("WRSS")');
+      if (lbl) lbl.textContent = 'R: ' + (msg.wrss ? 'WRSS ready' : 'WRSS not installed');
       if (lbl && !msg.wrss) lbl.style.color = 'var(--orange)';
     }
     if (msg.type === 'run_status') {
-      const st = document.getElementById('run-status-text');
-      const sp = document.getElementById('run-spinner');
-      const eb = document.getElementById('run-error-box');
+      var st = document.getElementById('run-status-text');
+      var sp = document.getElementById('run-spinner');
+      var eb = document.getElementById('run-error-box');
       if (msg.status === 'running') {
         if (st) st.textContent = msg.message || 'Running…';
         if (sp) sp.style.display = 'block';
@@ -751,7 +724,7 @@ cat(toJSON(result, auto_unbox=TRUE, null='null', na='null', digits=6))</div>
       } else if (msg.status === 'error') {
         if (sp) sp.style.display = 'none';
         if (eb) eb.style.display = 'block';
-        const em = document.getElementById('run-error-msg');
+        var em = document.getElementById('run-error-msg');
         if (em) em.textContent = msg.message || 'Unknown error';
       }
     }
@@ -760,30 +733,21 @@ cat(toJSON(result, auto_unbox=TRUE, null='null', na='null', digits=6))</div>
       loadSimResults(msg.result);
       switchTab('results');
     }
-  }
-
-  // Register with Shiny (htmlTemplate mode)
-  document.addEventListener('shiny:connected', function() {
-    Shiny.addCustomMessageHandler('to_builder', handleMsg);
-    Shiny.setInputValue('iframe_msg', {type:'ping'}, {priority:'event'});
   });
-  // Also listen for postMessage (standalone / iframe fallback)
-  window.addEventListener('message', function(e) { handleMsg(e.data); });
 
-  // Ping on load (works for both modes)
+  // ── Ping the parent on load ─────────────────────
   window.addEventListener('load', function() {
     setTimeout(function() {
-      if (window.Shiny && Shiny.setInputValue) {
-        Shiny.setInputValue('iframe_msg', {type:'ping'}, {priority:'event'});
-      } else {
-        window.parent.postMessage({type:'ping'}, '*');
-      }
-      setTimeout(function() {
-        const lbl = document.getElementById('status-shiny');
-        if (lbl && lbl.textContent.includes('Connecting')) lbl.textContent = 'R: offline (standalone mode)';
-      }, 3000);
-    }, 800);
+      window.parent.postMessage({ source: 'builder', payload: { type: 'ping' } }, '*');
+    }, 300);
+    // Update status if no pong after 5s
+    setTimeout(function() {
+      var lbl = document.getElementById('status-shiny');
+      if (lbl && lbl.textContent.includes('Connecting'))
+        lbl.textContent = 'R: offline';
+    }, 5000);
   });
+
 })();
 </script>
 <!-- RUN OVERLAY -->
@@ -867,7 +831,6 @@ function mkChartConfig(labels, datasets, type='line', opts={}) {
 // STATE
 // ══════════════════════════════════════════════════
 let nodes=[],connections=[],selectedNode=null,currentMode='select';
-let geojsonLayers=[]; // GeoJSON overlay layers
 let connPendingSource=null;
 let nodeCounter={river:0,reservoir:0,junction:0,diversion:0,aquifer:0,demand:0};
 let labelsVisible=false, labelMarkers={};
@@ -913,11 +876,11 @@ function mSVG(type,sel=false){
     junction:`<svg width="28" height="28" viewBox="0 0 28 28" style="${g}"><circle cx="14" cy="14" r="10" fill="${c}22" stroke="${c}" stroke-width="2"/><circle cx="14" cy="14" r="4" fill="${c}"/></svg>`,
     diversion:`<svg width="32" height="32" viewBox="0 0 32 32" style="${g}"><rect x="6" y="6" width="20" height="20" rx="2" fill="${c}22" stroke="${c}" stroke-width="2" transform="rotate(45 16 16)"/></svg>`,
     aquifer:`<svg width="34" height="28" viewBox="0 0 34 28" style="${g}"><ellipse cx="17" cy="20" rx="14" ry="7" fill="${c}22" stroke="${c}" stroke-width="2"/><path d="M3 20L3 14Q17 7 31 14L31 20" fill="${c}11" stroke="${c}" stroke-width="1.5"/><path d="M8 17Q17 13 26 17" stroke="${c}" stroke-width="1.5" fill="none" stroke-dasharray="3,2"/></svg>`,
-    demand:`<svg width="30" height="30" viewBox="0 0 30 30" style="${g}"><rect x="3" y="3" width="24" height="24" rx="3" fill="${c}33" stroke="${c}" stroke-width="2"/><line x1="15" y1="9" x2="15" y2="17" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><circle cx="15" cy="21" r="2" fill="${c}"/></svg>`,
+    demand:`<svg width="30" height="34" viewBox="0 0 30 34" style="${g}"><polygon points="15,2 28,30 2,30" fill="${c}33" stroke="${c}" stroke-width="2" stroke-linejoin="round"/><line x1="15" y1="12" x2="15" y2="21" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><circle cx="15" cy="25" r="2" fill="${c}"/></svg>`,
   }[type]||'';
 }
 function mkIcon(type,sel=false){
-  const sz={river:[32,32],reservoir:[34,34],junction:[28,28],diversion:[32,32],aquifer:[34,28],demand:[30,30]}[type]||[30,30];
+  const sz={river:[32,32],reservoir:[34,34],junction:[28,28],diversion:[32,32],aquifer:[34,28],demand:[30,34]}[type]||[30,30];
   return L.divIcon({html:mSVG(type,sel),className:'wrss-m',iconSize:sz,iconAnchor:[sz[0]/2,sz[1]/2]});
 }
 
@@ -926,12 +889,12 @@ function mkIcon(type,sel=false){
 // ══════════════════════════════════════════════════
 function defProps(type,name){
   switch(type){
-    case 'river':     return{name,latlon:'',discharge:[],seepageFraction:'',priority:''};
-    case 'reservoir': return{name,latlon:'',type:'storage',netEvaporation:[],seepageFraction:'',deadStorage:'',capacity:'',storageAreaTable:[],storageElevationTable:[],dischargeElevationTable:[],initialStorage:'',priority:'',installedCapacity:'',efficiency:[],designHeadMin:'',designHeadMax:'',designFlowMin:'',designFlowMax:'',turbineAxisElevation:'',submerged:'FALSE',loss:'',penstockDiameter:'',penstockLength:'',penstockRoughness:''};
-    case 'junction':  return{name,latlon:''};
-    case 'diversion': return{name,latlon:'',capacity:'',priority:''};
-    case 'aquifer':   return{name,latlon:'',area:'',volume:'',rechargeTS:[],leakageFraction:'',initialStorage:'',Sy:'0.1',priority:''};
-    case 'demand':    return{name,latlon:'',demandInputMode:'demandTS',demandTS:[],waterUseRate:'',waterVariation:[],cropArea:'',returnFlowFraction:'',priority:''};
+    case 'river':     return{name,discharge:[],seepageFraction:'',priority:''};
+    case 'reservoir': return{name,type:'storage',netEvaporation:[],seepageFraction:'',deadStorage:'',capacity:'',storageAreaTable:[],storageElevationTable:[],dischargeElevationTable:[],initialStorage:'',priority:'',installedCapacity:'',efficiency:[],designHeadMin:'',designHeadMax:'',designFlowMin:'',designFlowMax:'',turbineAxisElevation:'',submerged:'FALSE',loss:'',penstockDiameter:'',penstockLength:'',penstockRoughness:''};
+    case 'junction':  return{name};
+    case 'diversion': return{name,capacity:'',priority:''};
+    case 'aquifer':   return{name,area:'',volume:'',rechargeTS:[],leakageFraction:'',initialStorage:'',Sy:'0.1',priority:''};
+    case 'demand':    return{name,demandInputMode:'demandTS',demandTS:[],waterUseRate:'',waterVariation:[],cropArea:'',returnFlowFraction:'',priority:''};
     default:return{name};
   }
 }
@@ -939,19 +902,10 @@ function defProps(type,name){
 function placeNode(type,latlng){
   nodeCounter[type]++;
   const id=`${TM[type].short}${nodeCounter[type]}`,varName=`${type}${nodeCounter[type]}`;
-  const props=defProps(type,id);
-  props.latlon=`${latlng.lat.toFixed(6)},${latlng.lng.toFixed(6)}`;
-  const node={id,varName,type,latlng,props,marker:null,connections:[]};
+  const node={id,varName,type,latlng,props:defProps(type,id),marker:null,connections:[]};
   const marker=L.marker([latlng.lat,latlng.lng],{icon:mkIcon(type),draggable:true}).addTo(map);
   marker.on('click',e=>{L.DomEvent.stopPropagation(e);currentMode==='connect'?handleConnClick(node):selectNode(node);});
-  marker.on('dragend',()=>{
-    node.latlng=marker.getLatLng();
-    node.props.latlon=`${node.latlng.lat.toFixed(6)},${node.latlng.lng.toFixed(6)}`;
-    redrawConns(node);refreshLabel(node);
-    // live-update latlon field if node is selected
-    const ll=document.getElementById('prop-latlon-'+node.id);
-    if(ll)ll.value=node.props.latlon;
-  });
+  marker.on('dragend',()=>{node.latlng=marker.getLatLng();redrawConns(node);refreshLabel(node);});
   marker.bindTooltip(`<b>${id}</b><br><span style="color:#8b949e;font-size:10px">${TM[type].label}</span>`,{direction:'top',className:'wrss-tooltip',offset:[0,-16]});
   node.marker=marker;nodes.push(node);
   updateStatus();updateNodesList();selectNode(node);setMode('select');showLabel(node);
@@ -986,7 +940,6 @@ function clearAll(){
   nodes.forEach(n=>map.removeLayer(n.marker));
   Object.values(labelMarkers).forEach(m=>map.removeLayer(m));
   nodes=[];connections=[];selectedNode=null;labelMarkers={};
-  // keep geojson layers — user must remove explicitly
   nodeCounter={river:0,reservoir:0,junction:0,diversion:0,aquifer:0,demand:0};
   document.getElementById('props-content').style.display='none';
   document.getElementById('props-empty').style.display='';
@@ -1004,7 +957,7 @@ function toggleLabels(on){
 function showLabel(node){
   if(!labelsVisible)return;
   if(labelMarkers[node.id])map.removeLayer(labelMarkers[node.id]);
-  const meta=TM[node.type],sz={river:[32,32],reservoir:[34,34],junction:[28,28],diversion:[32,32],aquifer:[34,28],demand:[30,30]}[node.type]||[30,30];
+  const meta=TM[node.type],sz={river:[32,32],reservoir:[34,34],junction:[28,28],diversion:[32,32],aquifer:[34,28],demand:[30,34]}[node.type]||[30,30];
   const lbl=L.marker([node.latlng.lat,node.latlng.lng],{
     icon:L.divIcon({html:`<div style="background:rgba(13,17,23,.82);border:1px solid ${meta.color}66;border-radius:4px;padding:2px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:${meta.color};white-space:nowrap;pointer-events:none;transform:translateX(-50%)">${node.props.name||node.id}</div>`,
       className:'',iconSize:[0,0],iconAnchor:[0,-(Math.ceil(sz[1]/2)+4)]}),interactive:false,keyboard:false});
@@ -1190,24 +1143,6 @@ function connSection(node){
   return h+'</div>';
 }
 function upd(nid,key,val){const node=nodes.find(n=>n.id===nid);if(!node)return;node.props[key]=val;node.marker.setTooltipContent(`<b>${node.props.name||node.id}</b><br><span style="color:#8b949e;font-size:10px">${TM[node.type].label}</span>`);refreshLabel(node);}
-
-function updLatlon(nid,val){
-  const node=nodes.find(n=>n.id===nid);if(!node)return;
-  node.props.latlon=val;
-  const parts=val.split(',').map(s=>parseFloat(s.trim()));
-  if(parts.length===2&&!isNaN(parts[0])&&!isNaN(parts[1])){
-    const ll=L.latLng(parts[0],parts[1]);
-    node.latlng=ll;
-    node.marker.setLatLng(ll);
-    redrawConns(node);refreshLabel(node);
-    map.panTo(ll);
-  }
-}
-
-function latlonField(node){
-  const v=node.props.latlon||`${node.latlng.lat.toFixed(6)},${node.latlng.lng.toFixed(6)}`;
-  return `<div class="prop-row"><div class="prop-label"><div class="prop-label-left"><span>latlon</span>${hq('Latitude,Longitude coordinates. Edit to reposition on map, or drag marker.')}</div><span class="opt">auto</span></div><input id="prop-latlon-${node.id}" class="prop-input" type="text" value="${v}" placeholder="lat,lng" onchange="updLatlon('${node.id}',this.value)"/><div class="prop-hint">Edit to reposition · auto-updates on drag</div></div>`;
-}
 function updRefresh(nid,key,val){upd(nid,key,val);const node=nodes.find(n=>n.id===nid);if(node)renderProps(node);}
 
 // ══════════════════════════════════════════════════
@@ -1224,7 +1159,7 @@ function renderProps(node){
 
   if(node.type==='river'){
     const sc=connections.filter(c=>c.from.id===node.id&&c.type==='seepageObject');
-    form.innerHTML=`<div class="prop-group"><div class="pgl">Basic</div>${pi(node,'name','name','River / reach name','opt',false,'Descriptive label for this river or reach.')}${pi(node,'priority','priority [1–99]','Inf','opt','Lower = higher priority','Integer supply priority.')}${latlonField(node)}</div><div class="prop-group"><div class="pgl">discharge (MCM) <span class="badge badge-ts">time series</span> ${hq('Time series of river discharge at the upstream node, in MCM.')}</div>${tsWidget(node.id,'discharge','MCM')}</div><div class="prop-group"><div class="pgl">Seepage ${hq('Seepage causes a fraction of river discharge to leave the system.')}</div>${pi(node,'seepageFraction','seepageFraction [0, 1]','e.g. 0.05','opt','Seepage = seepageFraction × discharge','Fraction of discharge lost to seepage.')}<div style="font-size:11px;color:${sc.length?'#39d353':'var(--text2)'};padding:2px 0">seepageObject: ${sc.length?`<b style="color:var(--text)">${sc[0].to.id}</b>`:'not set — use Connect → Seepage To'}</div></div>${connSection(node)}`;
+    form.innerHTML=`<div class="prop-group"><div class="pgl">Basic</div>${pi(node,'name','name','River / reach name','opt',false,'Descriptive label for this river or reach.')}${pi(node,'priority','priority [1–99]','Inf','opt','Lower = higher priority','Integer supply priority.')}</div><div class="prop-group"><div class="pgl">discharge (MCM) <span class="badge badge-ts">time series</span> ${hq('Time series of river discharge at the upstream node, in MCM.')}</div>${tsWidget(node.id,'discharge','MCM')}</div><div class="prop-group"><div class="pgl">Seepage ${hq('Seepage causes a fraction of river discharge to leave the system.')}</div>${pi(node,'seepageFraction','seepageFraction [0, 1]','e.g. 0.05','opt','Seepage = seepageFraction × discharge','Fraction of discharge lost to seepage.')}<div style="font-size:11px;color:${sc.length?'#39d353':'var(--text2)'};padding:2px 0">seepageObject: ${sc.length?`<b style="color:var(--text)">${sc[0].to.id}</b>`:'not set — use Connect → Seepage To'}</div></div>${connSection(node)}`;
     content.appendChild(form);delBtn(content,node,'River');return;
   }
 
@@ -1237,7 +1172,6 @@ function renderProps(node){
       ${pi(node,'name','name','Reservoir name','opt',false,'Descriptive label.')}
       ${pi(node,'priority','priority [1–99]','Inf','opt',false,'Supply priority.')}
       ${pi(node,'initialStorage','initialStorage (MCM)','Omit → iterates','opt',false,'Starting reservoir storage in MCM.')}
-      ${latlonField(node)}
     </div>
     <div class="prop-group">
       <div class="pgl">netEvaporation (m) <span class="badge badge-ts">time series</span> ${hq('Net evaporation depth (m) per interval.')}</div>
@@ -1278,12 +1212,12 @@ function renderProps(node){
   }
 
   if(node.type==='junction'){
-    form.innerHTML=`<div class="prop-group"><div class="pgl">Basic</div>${pi(node,'name','name','Junction name','opt',false,'Label for this confluence.')}${latlonField(node)}</div>${connSection(node)}`;
+    form.innerHTML=`<div class="prop-group"><div class="pgl">Basic</div>${pi(node,'name','name','Junction name','opt',false,'Label for this confluence.')}</div>${connSection(node)}`;
     content.appendChild(form);delBtn(content,node,'Junction');return;
   }
 
   if(node.type==='diversion'){
-    form.innerHTML=`<div class="prop-group"><div class="pgl">Basic</div>${pi(node,'name','name','Diversion name','opt',false,'Label.')}${pi(node,'capacity','capacity (CMS)','Max diversion rate','req',false,'Max diversion rate in CMS.')}${pi(node,'priority','priority [1–99]','Inf','opt',false,'Supply priority.')}${latlonField(node)}</div>${connSection(node)}`;
+    form.innerHTML=`<div class="prop-group"><div class="pgl">Basic</div>${pi(node,'name','name','Diversion name','opt',false,'Label.')}${pi(node,'capacity','capacity (CMS)','Max diversion rate','req',false,'Max diversion rate in CMS.')}${pi(node,'priority','priority [1–99]','Inf','opt',false,'Supply priority.')}</div>${connSection(node)}`;
     content.appendChild(form);delBtn(content,node,'Diversion');return;
   }
 
@@ -1297,7 +1231,6 @@ function renderProps(node){
       ${pi(node,'Sy','Sy','0.1','opt','Default: 0.1','Specific yield [0–1].')}
       ${pi(node,'initialStorage','initialStorage (MCM)','Omit → iterates','opt',false,'Initial storage.')}
       ${pi(node,'priority','priority [1–99]','Inf','opt',false,'Supply priority.')}
-      ${latlonField(node)}
     </div>
     <div class="prop-group"><div class="pgl">rechargeTS (MCM) <span class="badge badge-ts">time series</span></div>${tsWidget(node.id,'rechargeTS','MCM')}</div>
     <div class="prop-group"><div class="pgl">Leakage</div>
@@ -1314,7 +1247,6 @@ function renderProps(node){
       ${pi(node,'name','name','Demand site name','opt',false,'Label.')}
       ${pi(node,'returnFlowFraction','returnFlowFraction [0, 1]','e.g. 0.3','opt','Return = fraction × supplied','Return flow fraction.')}
       ${pi(node,'priority','priority [1–99]','Inf','opt',false,'Supply priority.')}
-      ${latlonField(node)}
     </div>
     <div class="prop-group"><div class="pgl">Input Mode</div>${psel(node,'demandInputMode','mode',[{v:'demandTS',l:'demandTS — direct time series'},{v:'demandParams',l:'demandParams — area-based calc'}],'Demand specification method.')}</div>
     ${mode==='demandTS'?`<div class="prop-group"><div class="pgl">demandTS (MCM) <span class="badge badge-ts">time series</span></div>${tsWidget(node.id,'demandTS','MCM')}</div>`:`
@@ -1371,13 +1303,11 @@ function generateCode(){
     if(n.type==='river'){
       const Q=toRvec(n.props.discharge),sc=connections.filter(c=>c.from.id===n.id&&c.type==='seepageObject');
       const a=[`  name='${n.props.name||n.id}'`];
-      if(n.props.latlon)a.push(`  latlon=c(${n.props.latlon})`);
       if(downVar)a.push(`  downstream=${downVar}`);if(Q)a.push(`  discharge=${Q}`);if(n.props.seepageFraction)a.push(`  seepageFraction=${n.props.seepageFraction}`);if(sc.length)a.push(`  seepageObject=${sc[0].to.varName}`);if(n.props.priority)a.push(`  priority=${n.props.priority}`);
       L.push(`${n.varName} <- createRiver(\n${a.join(',\n')}\n)\n`);
     } else if(n.type==='reservoir'){
       const isH=(n.props.type||'storage')==='hydropower',sc=connections.filter(c=>c.from.id===n.id&&c.type==='seepageObject'),Ev=toRvec(n.props.netEvaporation),SA=toRmat(n.props.storageAreaTable,'volume_MCM','area_Km2'),SE=toRmat(n.props.storageElevationTable,'volume_MCM','elev_m'),DE=toRmat(n.props.dischargeElevationTable,'disch_cms','elev_m'),EF=toRmat(n.props.efficiency,'disch_cms','efficiency');
       const a=[`  type='${n.props.type||'storage'}'`,`  name='${n.props.name||n.id}'`];
-      if(n.props.latlon)a.push(`  latlon=c(${n.props.latlon})`);
       if(n.props.priority)a.push(`  priority=${n.props.priority}`);if(downVar)a.push(`  downstream=${downVar}`);if(Ev)a.push(`  netEvaporation=${Ev}`);if(n.props.seepageFraction)a.push(`  seepageFraction=${n.props.seepageFraction}`);if(sc.length)a.push(`  seepageObject=${sc[0].to.varName}`);if(n.props.initialStorage)a.push(`  initialStorage=${n.props.initialStorage}`);
       const gp=[`    deadStorage=${n.props.deadStorage||0}`,`    capacity=${n.props.capacity||0}`];
       if(SA)gp.push(`    storageAreaTable=${SA}`);if(SE)gp.push(`    storageElevationTable=${SE}`);if(isH&&DE)gp.push(`    dischargeElevationTable=${DE}`);
@@ -1385,23 +1315,18 @@ function generateCode(){
       if(isH){const pl=[];if(n.props.installedCapacity)pl.push(`    installedCapacity=${n.props.installedCapacity}`);if(EF)pl.push(`    efficiency=${EF}`);if(n.props.designHeadMin||n.props.designHeadMax)pl.push(`    designHead=c(${n.props.designHeadMin||'NA'},${n.props.designHeadMax||'NA'})`);if(n.props.designFlowMin||n.props.designFlowMax)pl.push(`    designFlow=c(${n.props.designFlowMin||'NA'},${n.props.designFlowMax||'NA'})`);if(n.props.turbineAxisElevation)pl.push(`    turbineAxisElevation=${n.props.turbineAxisElevation}`);pl.push(`    submerged=${n.props.submerged||'FALSE'}`);if(n.props.loss)pl.push(`    loss=${n.props.loss}`);if(pl.length)a.push(`  plant=list(\n${pl.join(',\n')}\n  )`);if(n.props.penstockDiameter||n.props.penstockLength||n.props.penstockRoughness){const ps=[];if(n.props.penstockDiameter)ps.push(`    diameter=${n.props.penstockDiameter}`);if(n.props.penstockLength)ps.push(`    length=${n.props.penstockLength}`);if(n.props.penstockRoughness)ps.push(`    roughness=${n.props.penstockRoughness}`);a.push(`  penstock=list(\n${ps.join(',\n')}\n  )`);}}
       L.push(`${n.varName} <- createReservoir(\n${a.join(',\n')}\n)\n`);
     } else if(n.type==='junction'){
-      const a=[`  name='${n.props.name||n.id}'`];
-      if(n.props.latlon)a.push(`  latlon=c(${n.props.latlon})`);
-      if(downVar)a.push(`  downstream=${downVar}`);
+      const a=[`  name='${n.props.name||n.id}'`];if(downVar)a.push(`  downstream=${downVar}`);
       L.push(`${n.varName} <- createJunction(\n${a.join(',\n')}\n)\n`);
     } else if(n.type==='diversion'){
       const dv=connections.filter(c=>c.from.id===n.id&&c.type==='divertObject'),a=[`  name='${n.props.name||n.id}'`,`  capacity=${n.props.capacity||0}`];
-      if(n.props.latlon)a.push(`  latlon=c(${n.props.latlon})`);
       if(downVar)a.push(`  downstream=${downVar}`);if(dv.length)a.push(`  divertObject=${dv[0].to.varName}`);if(n.props.priority)a.push(`  priority=${n.props.priority}`);
       L.push(`${n.varName} <- createDiversion(\n${a.join(',\n')}\n)\n`);
     } else if(n.type==='aquifer'){
       const lk=connections.filter(c=>c.from.id===n.id&&c.type==='leakageObject'),RTS=toRvec(n.props.rechargeTS),a=[`  name='${n.props.name||n.id}'`,`  area=${n.props.area||0}`,`  volume=${n.props.volume||0}`];
-      if(n.props.latlon)a.push(`  latlon=c(${n.props.latlon})`);
       if(RTS)a.push(`  rechargeTS=${RTS}`);if(n.props.leakageFraction)a.push(`  leakageFraction=${n.props.leakageFraction}`);if(n.props.initialStorage)a.push(`  initialStorage=${n.props.initialStorage}`);a.push(`  Sy=${n.props.Sy||'0.1'}`);if(lk.length)a.push(`  leakageObject=${lk[0].to.varName}`);if(n.props.priority)a.push(`  priority=${n.props.priority}`);
       L.push(`${n.varName} <- createAquifer(\n${a.join(',\n')}\n)\n`);
     } else if(n.type==='demand'){
       const sup=connections.filter(c=>c.to.id===n.id&&c.type==='supplier').map(c=>c.from.varName),dwd=connections.filter(c=>c.from.id===n.id&&c.type==='downstream'),downD=dwd.length?dwd[0].to.varName:null,mode=n.props.demandInputMode||'demandTS',a=[`  name='${n.props.name||n.id}'`];
-      if(n.props.latlon)a.push(`  latlon=c(${n.props.latlon})`);
       if(mode==='demandTS'){const D=toRvec(n.props.demandTS);if(D)a.push(`  demandTS=${D}`);}
       else{const WV=toRvec(n.props.waterVariation);a.push(`  demandParams=list(\n    waterUseRate=${n.props.waterUseRate||0},\n    waterVariation=${WV||'c()'},\n    cropArea=${n.props.cropArea||0}\n  )`);}
       a.push(`  suppliers=list(${sup.join(',')})`);if(n.props.returnFlowFraction)a.push(`  returnFlowFraction=${n.props.returnFlowFraction}`);if(downD)a.push(`  downstream=${downD}`);if(n.props.priority)a.push(`  priority=${n.props.priority}`);
@@ -1444,19 +1369,11 @@ function showCode(){switchTab('code');generateCode();}
 // ══════════════════════════════════════════════════
 // RUN MODAL & POSIT CLOUD
 // ══════════════════════════════════════════════════
-function openRunModal() {
-  generateCode();
-  document.getElementById('run-modal').classList.add('open');
-}
+function openRunModal() { runModel(); }
 
 function runModel() {
   if (!nodes.length) { alert('Add at least one node before running.'); return; }
-  if (!window.Shiny || !window.Shiny.setInputValue) {
-    alert('Not connected to R. Use "Download .R Script" and run it manually in Posit Cloud or RStudio.');
-    return;
-  }
   generateCode();
-  document.getElementById('run-modal').classList.remove('open');
   const ord = topoSort(nodes, connections);
   const modelDef = {
     name: document.getElementById('sim-name').value || 'Basin',
@@ -1481,18 +1398,22 @@ function runModel() {
       };
     }),
   };
-  // Show run overlay
+  // Show overlay
   const ov = document.getElementById('run-overlay');
   ov.style.display = 'flex';
   document.getElementById('run-spinner').style.display = 'block';
   document.getElementById('run-error-box').style.display = 'none';
   document.getElementById('run-status-text').textContent = 'Sending model to R…';
-  // Send to Shiny
+  const rb = document.getElementById('run-btn');
+  if (rb) rb.disabled = true;
+  // Send to Shiny parent
   toShiny({ type: 'run_model', model: modelDef });
 }
 
 function closeRunOverlay() {
   document.getElementById('run-overlay').style.display = 'none';
+  const rb = document.getElementById('run-btn');
+  if (rb) rb.disabled = false;
 }
 
 function downloadRScript() {
@@ -2133,186 +2054,6 @@ function downloadNodeData(safeName, format) {
 }
 
 // ══════════════════════════════════════════════════
-// GEOJSON IMPORT
-// ══════════════════════════════════════════════════
-const GJ_COLORS=['#a371f7','#4fc3f7','#39d353','#f0883e','#ff6e6e','#00d4ff','#ffeb3b','#e91e63'];
-
-function importGeoJSON(evt) {
-  const file=evt.target.files[0]; evt.target.value='';
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    let gj;
-    try{gj=JSON.parse(e.target.result);}
-    catch(err){alert('Invalid GeoJSON: '+err.message);return;}
-    if(!gj.type){alert('Not a valid GeoJSON file.');return;}
-    const color=GJ_COLORS[geojsonLayers.length%GJ_COLORS.length];
-    const layerName=file.name.replace(/\.geojson|\.json$/i,'');
-    let lyr;
-    try{
-      lyr=L.geoJSON(gj,{
-        style:()=>({color,weight:2,opacity:0.85,fillOpacity:0.15,fillColor:color}),
-        pointToLayer:(feat,ll)=>L.circleMarker(ll,{radius:5,fillColor:color,color:'#fff',weight:1,opacity:1,fillOpacity:0.9}),
-        onEachFeature:(feat,layer)=>{
-          if(feat.properties&&Object.keys(feat.properties).length){
-            const rows=Object.entries(feat.properties).slice(0,8).map(([k,v])=>`<b>${k}:</b> ${v}`).join('<br>');
-            layer.bindPopup(`<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.7">${rows}</div>`);
-          }
-        }
-      }).addTo(map);
-    }catch(err){alert('Failed to render GeoJSON: '+err.message);return;}
-    const layerEntry={id:Date.now(),name:layerName,layer:lyr,color};
-    geojsonLayers.push(layerEntry);
-    updateGJPanel();
-    // Fit map to GeoJSON bounds if no nodes yet
-    if(!nodes.length){try{const b=lyr.getBounds();if(b.isValid())map.fitBounds(b,{padding:[20,20]});}catch(e){}}
-  };
-  reader.readAsText(file);
-}
-
-function removeGeoJSONLayer(id){
-  const idx=geojsonLayers.findIndex(l=>l.id===id);
-  if(idx===-1)return;
-  map.removeLayer(geojsonLayers[idx].layer);
-  geojsonLayers.splice(idx,1);
-  updateGJPanel();
-}
-
-function clearAllGeoJSON(){
-  geojsonLayers.forEach(l=>map.removeLayer(l.layer));
-  geojsonLayers=[];
-  updateGJPanel();
-}
-
-function updateGJPanel(){
-  const panel=document.getElementById('gj-panel');
-  const list=document.getElementById('gj-panel-list');
-  if(!geojsonLayers.length){panel.style.display='none';return;}
-  panel.style.display='block';
-  list.innerHTML=geojsonLayers.map(l=>`
-    <div class="gj-layer-item">
-      <div class="gj-layer-color" style="background:${l.color}"></div>
-      <div class="gj-layer-name" title="${l.name}">${l.name}</div>
-      <button class="gj-layer-del" onclick="removeGeoJSONLayer(${l.id})" title="Remove layer">×</button>
-    </div>`).join('');
-}
-
-// ══════════════════════════════════════════════════
-// EXPORT MODEL TO JSON
-// ══════════════════════════════════════════════════
-function exportModelJSON(){
-  if(!nodes.length){alert('No objects to export. Build your model first.');return;}
-
-  // Build the JSON structure matching WRSS save_basin_json.R output format
-  const area=document.getElementById('sim-name').value||'MyBasin';
-  const start=document.getElementById('sim-start').value;
-  const end=document.getElementById('sim-end').value;
-  const ivl=document.getElementById('sim-interval').value;
-  const ord=topoSort(nodes,connections);
-
-  function nodeLatlon(n){
-    const raw=n.props.latlon;
-    if(raw){
-      if(Array.isArray(raw)&&raw.length===2&&!isNaN(raw[0])&&!isNaN(raw[1]))return[parseFloat(raw[0]),parseFloat(raw[1])];
-      if(typeof raw==='string'&&raw.trim()){const p=raw.split(',').map(s=>parseFloat(s.trim()));if(p.length===2&&!isNaN(p[0])&&!isNaN(p[1]))return p;}
-    }
-    return[n.latlng.lat,n.latlng.lng];
-  }
-
-  const out={
-    operation:{
-      name:area,
-      simulation:{start,end,interval:ivl},
-      rivers:[],reservoirs:[],junctions:[],aquifers:[],diversions:[],demands:[]
-    }
-  };
-  const op=out.operation;
-
-  ord.forEach(n=>{
-    const dw=connections.filter(c=>c.from.id===n.id&&c.type==='downstream');
-    const sc=connections.filter(c=>c.from.id===n.id&&c.type==='seepageObject');
-    const lk=connections.filter(c=>c.from.id===n.id&&c.type==='leakageObject');
-    const dv=connections.filter(c=>c.from.id===n.id&&c.type==='divertObject');
-    const sup=connections.filter(c=>c.to.id===n.id&&c.type==='supplier').map(c=>c.from.props.name||c.from.id);
-    const ll=nodeLatlon(n);
-    const base={name:n.props.name||n.id,latlon:ll,priority:n.props.priority||null};
-    if(dw.length)base.downstream=dw[0].to.props.name||dw[0].to.id;
-
-    if(n.type==='river'){
-      const obj={...base,seepageFraction:n.props.seepageFraction||null};
-      if(sc.length)obj.seepageObject=sc[0].to.props.name||sc[0].to.id;
-      const Q=n.props.discharge.filter(v=>v!==null&&v!==undefined&&v!=='');
-      if(Q.length)obj.inflow={discharge:Q};
-      op.rivers.push({operation:obj});
-    } else if(n.type==='reservoir'){
-      const geo={capacity:n.props.capacity||null,deadStorage:n.props.deadStorage||null};
-      if(n.props.storageAreaTable&&n.props.storageAreaTable.length){const r=n.props.storageAreaTable.filter(x=>x&&x[0]!==null&&x[1]!==null);if(r.length)geo.storageAreaTable={volume_MCM:r.map(x=>x[0]),area_Km2:r.map(x=>x[1])};}
-      if(n.props.storageElevationTable&&n.props.storageElevationTable.length){const r=n.props.storageElevationTable.filter(x=>x&&x[0]!==null&&x[1]!==null);if(r.length)geo.storageElevationTable={volume_MCM:r.map(x=>x[0]),elev_m:r.map(x=>x[1])};}
-      const isH=(n.props.type||'storage')==='hydropower';
-      if(isH&&n.props.dischargeElevationTable){const r=n.props.dischargeElevationTable.filter(x=>x&&x[0]!==null&&x[1]!==null);if(r.length)geo.dischargeElevationTable={disch_cms:r.map(x=>x[0]),elev_m:r.map(x=>x[1])};}
-      const obj={...base,type:n.props.type||'storage',geometry:geo};
-      if(sc.length)obj.seepageObject=sc[0].to.props.name||sc[0].to.id;
-      if(n.props.seepageFraction)obj.seepageFraction=n.props.seepageFraction;
-      if(n.props.initialStorage)obj.initialStorage=n.props.initialStorage;
-      const Ev=n.props.netEvaporation.filter(v=>v!==null&&v!==undefined&&v!=='');
-      if(Ev.length)obj.netEvaporation={netEvaporation:Ev};
-      if(isH){
-        const pl={};
-        if(n.props.installedCapacity)pl.installedCapacity=n.props.installedCapacity;
-        if(n.props.efficiency&&n.props.efficiency.length){const ef=n.props.efficiency.filter(x=>x&&x[0]!==null&&x[1]!==null);if(ef.length)pl.efficiency={disch_cms:ef.map(x=>x[0]),efficiency:ef.map(x=>x[1])};}
-        if(n.props.designHeadMin||n.props.designHeadMax)pl.designHead=[n.props.designHeadMin||null,n.props.designHeadMax||null];
-        if(n.props.designFlowMin||n.props.designFlowMax)pl.designFlow=[n.props.designFlowMin||null,n.props.designFlowMax||null];
-        if(n.props.turbineAxisElevation)pl.turbineAxisElevation=n.props.turbineAxisElevation;
-        pl.submerged=n.props.submerged==='TRUE';
-        if(n.props.loss)pl.loss=n.props.loss;
-        obj.plant=pl;
-        if(n.props.penstockDiameter||n.props.penstockLength||n.props.penstockRoughness){
-          obj.penstock={};
-          if(n.props.penstockDiameter)obj.penstock.diameter=n.props.penstockDiameter;
-          if(n.props.penstockLength)obj.penstock.length=n.props.penstockLength;
-          if(n.props.penstockRoughness)obj.penstock.roughness=n.props.penstockRoughness;
-        }
-      }
-      op.reservoirs.push({operation:obj});
-    } else if(n.type==='junction'){
-      op.junctions.push({operation:{...base}});
-    } else if(n.type==='diversion'){
-      const obj={...base,capacity:n.props.capacity||null};
-      if(dv.length)obj.divertObject=dv[0].to.props.name||dv[0].to.id;
-      op.diversions.push({operation:obj});
-    } else if(n.type==='aquifer'){
-      const obj={...base,area:n.props.area||null,volume:n.props.volume||null,Sy:n.props.Sy||0.1};
-      if(n.props.leakageFraction)obj.leakageFraction=n.props.leakageFraction;
-      if(n.props.initialStorage)obj.initialStorage=n.props.initialStorage;
-      if(lk.length)obj.leakageObject=lk[0].to.props.name||lk[0].to.id;
-      const RTS=n.props.rechargeTS.filter(v=>v!==null&&v!==undefined&&v!=='');
-      if(RTS.length)obj.inflow={'natural recharge':RTS};
-      op.aquifers.push({operation:obj});
-    } else if(n.type==='demand'){
-      const obj={...base,returnFlowFraction:n.props.returnFlowFraction||null};
-      if(sup.length)obj.suppliers=sup;
-      const dwd=connections.filter(c=>c.from.id===n.id&&c.type==='downstream');
-      if(dwd.length)obj.downstream=dwd[0].to.props.name||dwd[0].to.id;
-      if(n.props.demandInputMode==='demandTS'){
-        const D=n.props.demandTS.filter(v=>v!==null&&v!==undefined&&v!=='');
-        if(D.length)obj.demandTS={demand:D};
-      } else {
-        obj.demandParams={waterUseRate:n.props.waterUseRate||null,cropArea:n.props.cropArea||null,waterVariation:n.props.waterVariation.filter(v=>v!==null&&v!=='')||[]};
-      }
-      op.demands.push({operation:obj});
-    }
-  });
-
-  const json=JSON.stringify(out,null,2);
-  const blob=new Blob([json],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`${area}_WRSS_model.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-// ══════════════════════════════════════════════════
 // ABOUT MODAL
 // ══════════════════════════════════════════════════
 function openAbout(){document.getElementById('about-modal').classList.add('open');}
@@ -2474,26 +2215,7 @@ function doImport(data){
   const divDefs=(op.diversions||[]).map(x=>({type:'diversion',...x.operation||x}));
   const demDefs=(op.demands||[]).map(x=>({type:'demand',...x.operation||x}));
   const allDefs=[...riverDefs,...resDefs,...juncDefs,...aquiDefs,...divDefs,...demDefs];
-  // Check if all defs have valid latlon → skip autoLayout
-  function parseLatlon(d){
-    const raw=d.latlon;
-    if(!raw)return null;
-    if(Array.isArray(raw)&&raw.length===2&&!isNaN(raw[0])&&!isNaN(raw[1]))return{lat:parseFloat(raw[0]),lng:parseFloat(raw[1])};
-    if(typeof raw==='string'){const p=raw.split(',').map(s=>parseFloat(s.trim()));if(p.length===2&&!isNaN(p[0])&&!isNaN(p[1]))return{lat:p[0],lng:p[1]};}
-    if(typeof raw==='object'&&raw!==null){
-      const lat=raw.lat??raw.latitude??raw[0];const lng=raw.lng??raw.lon??raw.longitude??raw[1];
-      if(lat!==undefined&&lng!==undefined&&!isNaN(lat)&&!isNaN(lng))return{lat:parseFloat(lat),lng:parseFloat(lng)};
-    }
-    return null;
-  }
-  const allHaveLatlon = allDefs.length>0 && allDefs.every(d=>parseLatlon(d)!==null);
-  let positions;
-  if(allHaveLatlon){
-    positions={};
-    allDefs.forEach(d=>{const ll=parseLatlon(d);positions[normName(d.name)]={lat:ll.lat,lng:ll.lng};});
-  } else {
-    positions=autoLayout(allDefs);
-  }
+  const positions=autoLayout(allDefs);
   const nameToNode={};
 
   function addNode(type,props,latlng){
@@ -2502,33 +2224,25 @@ function doImport(data){
     const node={id,varName,type,latlng,props:{...defProps(type,id),...props,name:props.name||id},marker:null,connections:[]};
     const marker=L.marker([latlng.lat,latlng.lng],{icon:mkIcon(type),draggable:true}).addTo(map);
     marker.on('click',e=>{L.DomEvent.stopPropagation(e);currentMode==='connect'?handleConnClick(node):selectNode(node);});
-    marker.on('dragend',()=>{
-      node.latlng=marker.getLatLng();
-      node.props.latlon=`${node.latlng.lat.toFixed(6)},${node.latlng.lng.toFixed(6)}`;
-      redrawConns(node);refreshLabel(node);
-      const ll=document.getElementById('prop-latlon-'+node.id);
-      if(ll)ll.value=node.props.latlon;
-    });
+    marker.on('dragend',()=>{node.latlng=marker.getLatLng();redrawConns(node);refreshLabel(node);});
     marker.bindTooltip(`<b>${node.props.name||id}</b><br><span style="color:#8b949e;font-size:10px">${TM[type].label}</span>`,{direction:'top',className:'wrss-tooltip',offset:[0,-16]});
-    // ensure latlon in props reflects actual position
-    node.props.latlon=node.props.latlon||`${latlng.lat.toFixed(6)},${latlng.lng.toFixed(6)}`;
     node.marker=marker;nodes.push(node);nameToNode[normName(props.name)]=node;showLabel(node);return node;
   }
 
-  function latLng(name,def){const key=normName(name),pos=positions[key];if(pos)return L.latLng(pos.lat,pos.lng);if(def){const ll=parseLatlon(def);if(ll)return L.latLng(ll.lat,ll.lng);}return L.latLng(36+Math.random(),47+Math.random());}
+  function latLng(name){const key=normName(name),pos=positions[key];return pos?L.latLng(pos.lat,pos.lng):L.latLng(36+Math.random(),47+Math.random());}
 
-  riverDefs.forEach(d=>{addNode('river',{name:d.name,latlon:d.latlon||'',discharge:d.inflow?.discharge||d.discharge||[],seepageFraction:d.seepageFraction??'',priority:d.priority??''},latLng(d.name,d));});
+  riverDefs.forEach(d=>{addNode('river',{name:d.name,discharge:d.inflow?.discharge||d.discharge||[],seepageFraction:d.seepageFraction??'',priority:d.priority??''},latLng(d.name));});
 
   resDefs.forEach(d=>{
     const geo=d.geometry||{},plant=d.plant||{},penstock=d.penstock||{},netEvap=d.netEvaporation?.netEvaporation||d.netEvaporation||[];
     function parseTable(raw,col1C,col2C){if(!raw)return[];if(Array.isArray(raw))return raw.filter(r=>r&&r[0]!==null&&r[1]!==null);if(typeof raw==='object'){const keys=Object.keys(raw);const k1=col1C.find(c=>keys.some(k=>k.toLowerCase()===c.toLowerCase()));const k2=col2C.find(c=>keys.some(k=>k.toLowerCase()===c.toLowerCase()));const aK1=k1?keys.find(k=>k.toLowerCase()===k1.toLowerCase()):null;const aK2=k2?keys.find(k=>k.toLowerCase()===k2.toLowerCase()):null;if(aK1&&aK2){const a1=raw[aK1],a2=raw[aK2];if(Array.isArray(a1)&&Array.isArray(a2))return a1.map((v,i)=>[v,a2[i]]).filter(r=>r[0]!==null&&r[1]!==null);}}return[];}
-    addNode('reservoir',{name:d.name,latlon:d.latlon||'',type:d.type||'storage',netEvaporation:netEvap,seepageFraction:d.seepageFraction??'',deadStorage:geo.deadStorage??'',capacity:geo.capacity??'',storageAreaTable:parseTable(geo.storageAreaTable,['Volume','volume_MCM'],['Surface','area_Km2']),storageElevationTable:parseTable(geo.storageElevationTable,['Volume','volume_MCM'],['Elevation','elev_m']),dischargeElevationTable:parseTable(geo.dischargeElevationTable,['Discharge','disch_cms'],['Elevation','elev_m']),initialStorage:d.initialStorage??'',priority:d.priority??'',installedCapacity:plant.installedCapacity??'',efficiency:parseTable(plant.efficiency,['Discharge','disch_cms'],['Efficiency','efficiency']),designHeadMin:Array.isArray(plant.designHead)?plant.designHead[0]:(plant.designHead??''),designHeadMax:Array.isArray(plant.designHead)?plant.designHead[1]:'',designFlowMin:Array.isArray(plant.designFlow)?plant.designFlow[0]:(plant.designFlow??''),designFlowMax:Array.isArray(plant.designFlow)?plant.designFlow[1]:'',turbineAxisElevation:plant.turbineAxisElevation??'',submerged:plant.submerged?'TRUE':'FALSE',loss:plant.loss??'',penstockDiameter:penstock.diameter??'',penstockLength:penstock.length??'',penstockRoughness:penstock.roughness??''},latLng(d.name,d));
+    addNode('reservoir',{name:d.name,type:d.type||'storage',netEvaporation:netEvap,seepageFraction:d.seepageFraction??'',deadStorage:geo.deadStorage??'',capacity:geo.capacity??'',storageAreaTable:parseTable(geo.storageAreaTable,['Volume','volume_MCM'],['Surface','area_Km2']),storageElevationTable:parseTable(geo.storageElevationTable,['Volume','volume_MCM'],['Elevation','elev_m']),dischargeElevationTable:parseTable(geo.dischargeElevationTable,['Discharge','disch_cms'],['Elevation','elev_m']),initialStorage:d.initialStorage??'',priority:d.priority??'',installedCapacity:plant.installedCapacity??'',efficiency:parseTable(plant.efficiency,['Discharge','disch_cms'],['Efficiency','efficiency']),designHeadMin:Array.isArray(plant.designHead)?plant.designHead[0]:(plant.designHead??''),designHeadMax:Array.isArray(plant.designHead)?plant.designHead[1]:'',designFlowMin:Array.isArray(plant.designFlow)?plant.designFlow[0]:(plant.designFlow??''),designFlowMax:Array.isArray(plant.designFlow)?plant.designFlow[1]:'',turbineAxisElevation:plant.turbineAxisElevation??'',submerged:plant.submerged?'TRUE':'FALSE',loss:plant.loss??'',penstockDiameter:penstock.diameter??'',penstockLength:penstock.length??'',penstockRoughness:penstock.roughness??''},latLng(d.name));
   });
 
-  juncDefs.forEach(d=>{addNode('junction',{name:d.name,latlon:d.latlon||''},latLng(d.name,d));});
-  aquiDefs.forEach(d=>{addNode('aquifer',{name:d.name,latlon:d.latlon||'',area:d.area??'',volume:d.volume??'',Sy:d.Sy??'0.1',leakageFraction:d.leakageFraction??'',initialStorage:d.initialStorage??'',priority:d.priority??'',rechargeTS:d.inflow?.['natural recharge']||d.inflow?.recharge||d.rechargeTS||[]},latLng(d.name,d));});
-  divDefs.forEach(d=>{addNode('diversion',{name:d.name,latlon:d.latlon||'',capacity:d.capacity??'',priority:d.priority??''},latLng(d.name,d));});
-  demDefs.forEach(d=>{const demandTS=d.demandTS?.demand||d.demandTS||[];const demParams=d.demandParams||{};addNode('demand',{name:d.name,latlon:d.latlon||'',demandInputMode:demandTS.length>0?'demandTS':'demandParams',demandTS,waterUseRate:demParams.waterUseRate??'',waterVariation:demParams.waterVariation||[],cropArea:demParams.cropArea??'',returnFlowFraction:d.returnFlowFraction??'',priority:d.priority??''},latLng(d.name,d));});
+  juncDefs.forEach(d=>{addNode('junction',{name:d.name},latLng(d.name));});
+  aquiDefs.forEach(d=>{addNode('aquifer',{name:d.name,area:d.area??'',volume:d.volume??'',Sy:d.Sy??'0.1',leakageFraction:d.leakageFraction??'',initialStorage:d.initialStorage??'',priority:d.priority??'',rechargeTS:d.inflow?.['natural recharge']||d.inflow?.recharge||d.rechargeTS||[]},latLng(d.name));});
+  divDefs.forEach(d=>{addNode('diversion',{name:d.name,capacity:d.capacity??'',priority:d.priority??''},latLng(d.name));});
+  demDefs.forEach(d=>{const demandTS=d.demandTS?.demand||d.demandTS||[];const demParams=d.demandParams||{};addNode('demand',{name:d.name,demandInputMode:demandTS.length>0?'demandTS':'demandParams',demandTS,waterUseRate:demParams.waterUseRate??'',waterVariation:demParams.waterVariation||[],cropArea:demParams.cropArea??'',returnFlowFraction:d.returnFlowFraction??'',priority:d.priority??''},latLng(d.name));});
 
   function findNode(name){if(!name)return null;const key=normName(name);if(nameToNode[key])return nameToNode[key];for(const[k,v]of Object.entries(nameToNode))if(k===key||k.replace(/\s/g,'')===key.replace(/\s/g,''))return v;return null;}
   function wire(srcName,tgtName,type){const src=findNode(srcName),tgt=findNode(tgtName);if(!src||!tgt)return;if(connections.find(c=>c.from.id===src.id&&c.to.id===tgt.id&&c.type===type))return;const clr=CC[type]||'#aaa';const line=L.polyline([src.latlng,tgt.latlng],{color:clr,weight:2.5,opacity:.85,dashArray:type==='downstream'?null:'6,4'}).addTo(map);const arrow=mkArrow(src.latlng,tgt.latlng,clr);arrow.addTo(map);const conn={id:Date.now()+Math.random(),from:src,to:tgt,type,line,arrow};connections.push(conn);src.connections.push(conn);tgt.connections.push(conn);}
