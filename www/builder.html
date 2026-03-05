@@ -688,26 +688,35 @@ cat(toJSON(result, auto_unbox=TRUE, null='null', na='null', digits=6))</div>
 <!-- ══ SMART FLOATING TOOLTIP ══ -->
 <div id="hq-tip"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+<script>
 // ══════════════════════════════════════════════════
-// SHINY POSTMESSAGE BRIDGE
+// SHINY BRIDGE  (iframe → parent Shiny page)
+// builder.html runs as a static file inside an iframe.
+// The parent Shiny page owns the WebSocket session.
+// We communicate via postMessage in both directions.
 // ══════════════════════════════════════════════════
 (function() {
-  // Receive messages from Shiny
+
+  // ── Send TO parent Shiny page ───────────────────
+  window.toShiny = function(data) {
+    window.parent.postMessage({ source: 'builder', payload: data }, '*');
+  };
+
+  // ── Receive FROM parent Shiny page ─────────────
   window.addEventListener('message', function(e) {
-    const msg = e.data;
+    var msg = e.data;
     if (!msg || !msg.type) return;
     if (msg.type === 'pong') {
-      const dot = document.getElementById('shiny-dot');
-      const lbl = document.getElementById('status-shiny');
+      var dot = document.getElementById('shiny-dot');
+      var lbl = document.getElementById('status-shiny');
       if (dot) dot.classList.remove('offline');
-      if (lbl) lbl.textContent = 'R: ' + (msg.wrss ? 'WRSS ready' : 'WRSS not installed — run install.packages("WRSS")');
+      if (lbl) lbl.textContent = 'R: ' + (msg.wrss ? 'WRSS ready' : 'WRSS not installed');
       if (lbl && !msg.wrss) lbl.style.color = 'var(--orange)';
     }
     if (msg.type === 'run_status') {
-      const st = document.getElementById('run-status-text');
-      const sp = document.getElementById('run-spinner');
-      const eb = document.getElementById('run-error-box');
+      var st = document.getElementById('run-status-text');
+      var sp = document.getElementById('run-spinner');
+      var eb = document.getElementById('run-error-box');
       if (msg.status === 'running') {
         if (st) st.textContent = msg.message || 'Running…';
         if (sp) sp.style.display = 'block';
@@ -715,7 +724,7 @@ cat(toJSON(result, auto_unbox=TRUE, null='null', na='null', digits=6))</div>
       } else if (msg.status === 'error') {
         if (sp) sp.style.display = 'none';
         if (eb) eb.style.display = 'block';
-        const em = document.getElementById('run-error-msg');
+        var em = document.getElementById('run-error-msg');
         if (em) em.textContent = msg.message || 'Unknown error';
       }
     }
@@ -726,39 +735,20 @@ cat(toJSON(result, auto_unbox=TRUE, null='null', na='null', digits=6))</div>
     }
   });
 
-  // Ping Shiny on load
+  // ── Ping the parent on load ─────────────────────
   window.addEventListener('load', function() {
     setTimeout(function() {
-      window.parent.postMessage({ type: 'ping' }, '*');
-      setTimeout(function() {
-        const dot = document.getElementById('shiny-dot');
-        const lbl = document.getElementById('status-shiny');
-        if (dot && dot.classList.contains('offline') && lbl && lbl.textContent.includes('Connecting')) {
-          lbl.textContent = 'R: offline';
-        }
-      }, 3000);
-    }, 800);
+      window.parent.postMessage({ source: 'builder', payload: { type: 'ping' } }, '*');
+    }, 300);
+    // Update status if no pong after 5s
+    setTimeout(function() {
+      var lbl = document.getElementById('status-shiny');
+      if (lbl && lbl.textContent.includes('Connecting'))
+        lbl.textContent = 'R: offline';
+    }, 5000);
   });
-})();
 
-// Run overlay HTML injection
-(function() {
-  if (!document.getElementById('run-overlay')) {
-    const ov = document.createElement('div');
-    ov.id = 'run-overlay';
-    ov.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(13,17,23,.82);backdrop-filter:blur(4px);z-index:8000;align-items:center;justify-content:center;flex-direction:column;gap:16px';
-    ov.innerHTML = \`
-      <div id="run-spinner" style="width:44px;height:44px;border:3px solid #30363d;border-top-color:#39d353;border-radius:50%;animation:spin .8s linear infinite"></div>
-      <div id="run-status-text" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#39d353;max-width:320px;text-align:center">Sending model to R…</div>
-      <div id="run-error-box" style="display:none;background:rgba(255,110,110,.1);border:1px solid #ff6e6e;border-radius:8px;padding:16px 20px;max-width:440px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:#ff6e6e;line-height:1.7;text-align:center">
-        <b style="color:#e6edf3">Simulation Error</b><br><span id="run-error-msg"></span>
-        <br><button onclick="closeRunOverlay()" style="margin-top:10px;padding:7px 20px;background:transparent;border:1px solid #ff6e6e;border-radius:4px;color:#ff6e6e;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px">Close</button>
-      </div>
-    \`;
-    document.body.appendChild(ov);
-  }
 })();
-
 </script>
 <!-- RUN OVERLAY -->
 <div id="run-overlay" style="display:none;position:fixed;inset:0;background:rgba(13,17,23,.82);backdrop-filter:blur(4px);z-index:8000;align-items:center;justify-content:center;flex-direction:column;gap:16px">
@@ -1417,7 +1407,7 @@ function runModel() {
   const rb = document.getElementById('run-btn');
   if (rb) rb.disabled = true;
   // Send to Shiny parent
-  window.parent.postMessage({ type: 'run_model', model: modelDef }, '*');
+  toShiny({ type: 'run_model', model: modelDef });
 }
 
 function closeRunOverlay() {
@@ -2257,4 +2247,11 @@ function doImport(data){
   function findNode(name){if(!name)return null;const key=normName(name);if(nameToNode[key])return nameToNode[key];for(const[k,v]of Object.entries(nameToNode))if(k===key||k.replace(/\s/g,'')===key.replace(/\s/g,''))return v;return null;}
   function wire(srcName,tgtName,type){const src=findNode(srcName),tgt=findNode(tgtName);if(!src||!tgt)return;if(connections.find(c=>c.from.id===src.id&&c.to.id===tgt.id&&c.type===type))return;const clr=CC[type]||'#aaa';const line=L.polyline([src.latlng,tgt.latlng],{color:clr,weight:2.5,opacity:.85,dashArray:type==='downstream'?null:'6,4'}).addTo(map);const arrow=mkArrow(src.latlng,tgt.latlng,clr);arrow.addTo(map);const conn={id:Date.now()+Math.random(),from:src,to:tgt,type,line,arrow};connections.push(conn);src.connections.push(conn);tgt.connections.push(conn);}
 
-  allDefs.forEach(d=>{if(d.downstream)wire(d.name,d.downstream,'downstream');if(d.seepageObject)wire(d.name,d.seepageObject,'seepageObject');if(d.leakageObject)wire(d.name,d.leakageObject,'leakageObject');if(d.divertObject)wire(d.name,d.divertObject,'divertObject');if(d.suppliers&&d.suppliers.length)[].concat(d.suppliers).forEach(s=>wire(s,
+  allDefs.forEach(d=>{if(d.downstream)wire(d.name,d.downstream,'downstream');if(d.seepageObject)wire(d.name,d.seepageObject,'seepageObject');if(d.leakageObject)wire(d.name,d.leakageObject,'leakageObject');if(d.divertObject)wire(d.name,d.divertObject,'divertObject');if(d.suppliers&&d.suppliers.length)[].concat(d.suppliers).forEach(s=>wire(s,d.name,'supplier'));});
+
+  updateStatus();updateNodesList();
+  if(nodes.length)map.fitBounds(nodes.map(n=>[n.latlng.lat,n.latlng.lng]));
+}
+</script>
+</body>
+</html>
