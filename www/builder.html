@@ -611,6 +611,7 @@ cat(toJSON(result, auto_unbox=TRUE, null='null', na='null', digits=6))</div>
     <div class="run-footer">
       <button class="run-dl-btn" onclick="downloadRScript()">⬇ Download .R Script</button>
       <button class="run-posit-btn" onclick="openPositCloud()">Open Posit Cloud ↗</button>
+      <button class="run-posit-btn" id="run-shiny-btn" onclick="runModel()" style="background:rgba(57,211,83,.18);border-color:var(--green)" title="Only works when served via Shiny (Posit Cloud deployment)">▶ Run in R</button>
     </div>
   </div>
 </div>
@@ -1443,11 +1444,19 @@ function showCode(){switchTab('code');generateCode();}
 // ══════════════════════════════════════════════════
 // RUN MODAL & POSIT CLOUD
 // ══════════════════════════════════════════════════
-function openRunModal() { runModel(); }
+function openRunModal() {
+  generateCode();
+  document.getElementById('run-modal').classList.add('open');
+}
 
 function runModel() {
   if (!nodes.length) { alert('Add at least one node before running.'); return; }
+  if (!window.Shiny || !window.Shiny.setInputValue) {
+    alert('Not connected to R. Use "Download .R Script" and run it manually in Posit Cloud or RStudio.');
+    return;
+  }
   generateCode();
+  document.getElementById('run-modal').classList.remove('open');
   const ord = topoSort(nodes, connections);
   const modelDef = {
     name: document.getElementById('sim-name').value || 'Basin',
@@ -1472,22 +1481,18 @@ function runModel() {
       };
     }),
   };
-  // Show overlay
+  // Show run overlay
   const ov = document.getElementById('run-overlay');
   ov.style.display = 'flex';
   document.getElementById('run-spinner').style.display = 'block';
   document.getElementById('run-error-box').style.display = 'none';
   document.getElementById('run-status-text').textContent = 'Sending model to R…';
-  const rb = document.getElementById('run-btn');
-  if (rb) rb.disabled = true;
-  // Send to Shiny parent
+  // Send to Shiny
   toShiny({ type: 'run_model', model: modelDef });
 }
 
 function closeRunOverlay() {
   document.getElementById('run-overlay').style.display = 'none';
-  const rb = document.getElementById('run-btn');
-  if (rb) rb.disabled = false;
 }
 
 function downloadRScript() {
@@ -2206,9 +2211,10 @@ function exportModelJSON(){
   const ord=topoSort(nodes,connections);
 
   function nodeLatlon(n){
-    if(n.props.latlon){
-      const p=n.props.latlon.split(',').map(s=>parseFloat(s.trim()));
-      if(p.length===2&&!isNaN(p[0])&&!isNaN(p[1]))return[p[0],p[1]];
+    const raw=n.props.latlon;
+    if(raw){
+      if(Array.isArray(raw)&&raw.length===2&&!isNaN(raw[0])&&!isNaN(raw[1]))return[parseFloat(raw[0]),parseFloat(raw[1])];
+      if(typeof raw==='string'&&raw.trim()){const p=raw.split(',').map(s=>parseFloat(s.trim()));if(p.length===2&&!isNaN(p[0])&&!isNaN(p[1]))return p;}
     }
     return[n.latlng.lat,n.latlng.lng];
   }
