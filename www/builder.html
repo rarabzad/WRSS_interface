@@ -930,7 +930,26 @@ function placeNode(type,latlng){
 function selectNode(node){
   if(selectedNode)selectedNode.marker.setIcon(mkIcon(selectedNode.type,false));
   selectedNode=node;
-  if(node){node.marker.setIcon(mkIcon(node.type,true));renderProps(node);switchTab('properties');}
+  if(node){
+    node.marker.setIcon(mkIcon(node.type,true));
+    const activeTab=document.querySelector('.panel-tab.active');
+    if(activeTab&&activeTab.id==='tab-results'&&simResults){
+      // Find matching result sub-tab by node name
+      const sr=simResults;
+      const allNodes=[
+        ...sr.reservoirs.map(n=>({...n,nodeType:'reservoir'})),
+        ...sr.rivers.map(n=>({...n,nodeType:'river'})),
+        ...sr.junctions.map(n=>({...n,nodeType:'junction'})),
+        ...sr.demands.map(n=>({...n,nodeType:'demand'})),
+        ...sr.aquifers.map(n=>({...n,nodeType:'aquifer'})),
+      ];
+      const nodeName=(node.props.name||node.id).toLowerCase().trim();
+      const idx=allNodes.findIndex(n=>(n.name||'').toLowerCase().trim()===nodeName);
+      if(idx!==-1)showResNode(idx);
+    } else {
+      renderProps(node);switchTab('properties');
+    }
+  }
   setDelBtnState(!!node);updateNodesList();
 }
 
