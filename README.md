@@ -1,6 +1,6 @@
 # WRSS Interface
 
-[Live url](https://raventools-wrss.share.connect.posit.cloud)
+[Live URL](https://raventools-wrss.share.connect.posit.cloud)
 
 ## Folder structure
 
